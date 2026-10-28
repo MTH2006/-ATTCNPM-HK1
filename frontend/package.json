@@ -1,0 +1,14 @@
+{
+  "name": "hestora-hotel-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "serve -l 3000",
+    "start": "serve -l 3000"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
