@@ -1,6 +1,7 @@
 package com.hotelbooking.controller;
 
 import com.hotelbooking.model.Booking;
+import com.hotelbooking.service.BookingNotificationService;
 import com.hotelbooking.service.BookingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +17,15 @@ import java.util.Map;
 public class BookingController {
 
     private final BookingService bookingService;
+private final BookingNotificationService notificationService;
 
-    public BookingController(BookingService bookingService) {
-        this.bookingService = bookingService;
-    }
+public BookingController(
+        BookingService bookingService,
+        BookingNotificationService notificationService) {
+
+    this.bookingService = bookingService;
+    this.notificationService = notificationService;
+}
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> createBooking(@RequestBody Booking booking) {
@@ -28,6 +34,11 @@ public class BookingController {
             Booking created = bookingService.createBooking(booking);
             response.put("success", true);
             response.put("booking", created);
+            // FR-91: Tao thong bao xac nhan sau khi dat phong thanh cong
+            response.put(
+            "notification",
+            notificationService.buildBookingConfirmation(created)
+);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException | IllegalStateException e) {
             response.put("success", false);
