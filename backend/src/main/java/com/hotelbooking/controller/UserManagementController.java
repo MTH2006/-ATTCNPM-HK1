@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Optional;
@@ -60,5 +61,35 @@ public class UserManagementController {
         return ResponseEntity.ok(
             userService.getAllUsers()
         );
+    }
+
+    // FR-80: Tim kiem nguoi dung theo ten, email hoac so dien thoai
+    @GetMapping("/search")
+    public ResponseEntity<List<UserSummaryResponse>> searchUsers(
+            @RequestParam(required = false, defaultValue = "") String keyword,
+            @RequestHeader(
+                    value = "Authorization",
+                    required = false
+            ) String authorization) {
+
+        // Kiem tra token dang nhap
+        Optional<User> currentUser =
+                tokens.authenticate(authorization);
+
+        // Chua dang nhap hoac token khong hop le
+        if (currentUser.isEmpty()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        // Chi ADMIN moi duoc tim kiem nguoi dung
+        if (!"ADMIN".equals(currentUser.get().getRole())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        // Goi Service de tim kiem
+        List<UserSummaryResponse> users =
+                userService.searchUsers(keyword);
+
+        return ResponseEntity.ok(users);
     }
 }
