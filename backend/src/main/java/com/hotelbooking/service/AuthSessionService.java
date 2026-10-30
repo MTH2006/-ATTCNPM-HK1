@@ -28,6 +28,11 @@ public class AuthSessionService {
         return find(authorization) != null;
     }
 
+    public String userId(String authorization) {
+        UserSession session = find(authorization);
+        return session == null ? null : session.userId();
+    }
+
     private UserSession find(String authorization) {
         if (authorization == null || !authorization.startsWith("Bearer ")) return null;
         String token = authorization.substring(7).trim();

@@ -11,6 +11,7 @@
 \connect hotel_booking_db
 
 -- Clean up existing tables if necessary
+DROP TABLE IF EXISTS reviews CASCADE;
 DROP TABLE IF EXISTS bookings CASCADE;
 DROP TABLE IF EXISTS rooms CASCADE;
 DROP TABLE IF EXISTS hotels CASCADE;
@@ -82,6 +83,20 @@ CREATE TABLE bookings (
     CONSTRAINT chk_booking_dates CHECK (check_out > check_in)
 );
 
+-- Reviews can only reference a real completed booking. One review per booking.
+CREATE TABLE reviews (
+    id BIGSERIAL PRIMARY KEY,
+    hotel_id BIGINT NOT NULL REFERENCES hotels(id) ON DELETE CASCADE,
+    booking_id BIGINT NOT NULL UNIQUE REFERENCES bookings(id) ON DELETE CASCADE,
+    user_uuid VARCHAR(64) NOT NULL REFERENCES users(user_uuid) ON DELETE CASCADE,
+    author_name VARCHAR(150) NOT NULL,
+    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT NOT NULL CHECK (char_length(trim(comment)) BETWEEN 5 AND 3000),
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'PUBLISHED', 'REJECTED')),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ==============================================================================
 -- 3. INDEXES FOR PERFORMANCE OPTIMIZATION
 -- ==============================================================================
@@ -92,6 +107,8 @@ CREATE INDEX idx_bookings_hotel_id ON bookings(hotel_id);
 CREATE INDEX idx_bookings_dates ON bookings(hotel_id, check_in, check_out);
 CREATE INDEX idx_bookings_guest_email ON bookings(guest_email);
 CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_reviews_hotel_status ON reviews(hotel_id, status, created_at DESC);
+CREATE INDEX idx_reviews_user ON reviews(user_uuid);
 
 -- ==============================================================================
 -- 4. SEED DATA (Dữ liệu mẫu ban đầu)

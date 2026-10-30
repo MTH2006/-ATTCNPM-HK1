@@ -68,3 +68,8 @@ Mở `http://localhost:3000/hotel-management.html` và đăng nhập bằng tài
 UPDATE users SET role = 'ADMIN' WHERE email = 'admin@example.com';
 ```
 Đăng nhập lại sau khi được cấp quyền. API quản lý yêu cầu Bearer token của phiên đăng nhập ADMIN. Các endpoint quản trị: `GET /api/hotels`, `POST /api/hotels`, `PUT /api/hotels/{id}`, `DELETE /api/hotels/{id}`. Hạng sao chỉ được thêm hoặc thay đổi khi hồ sơ được đánh dấu đã xác minh. Khách sạn bị ẩn sẽ không xuất hiện trong danh sách công khai.
+
+### 4. Đánh giá khách sạn (FR-45–FR-50)
+Mở `http://localhost:3000/reviews.html` để xem đánh giá đã được duyệt, viết đánh giá cho đơn lưu trú của tài khoản sau khi đơn được đánh dấu `COMPLETED`, hoặc sửa/xóa đánh giá của mình. Mỗi đơn chỉ được đánh giá một lần; nội dung mới và nội dung chỉnh sửa chờ quản trị viên duyệt. Đăng nhập ADMIN để xem hàng chờ duyệt trên trang đánh giá.
+
+Các API chính: `GET /api/reviews?hotelId={id}`, `GET /api/reviews/eligible-bookings`, `GET /api/reviews/mine`, `POST /api/reviews`, `PUT/DELETE /api/reviews/{id}`, `GET /api/reviews/admin/pending`, `PUT /api/reviews/admin/{id}/moderation`. Quản trị viên có thể chuyển đơn đã xác nhận sang hoàn tất sau ngày trả phòng bằng `PUT /api/bookings/{bookingId}/complete`. Schema PostgreSQL khởi tạo được định nghĩa trong `database/init.sql`; cấu hình JPA hiện tại tự tạo bảng mới khi backend khởi động.
