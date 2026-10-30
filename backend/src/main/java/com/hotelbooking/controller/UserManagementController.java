@@ -5,10 +5,15 @@ import com.hotelbooking.dto.UserSummaryResponse;
 import com.hotelbooking.model.User;
 import com.hotelbooking.security.AuthTokenService;
 import com.hotelbooking.service.UserManagementService;
+import com.hotelbooking.dto.UpdateUserRequest;
+
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -91,5 +96,49 @@ public class UserManagementController {
                 userService.searchUsers(keyword);
 
         return ResponseEntity.ok(users);
+    }
+    
+    // FR-81: ADMIN cap nhat thong tin nguoi dung
+    @PutMapping("/{id}")
+    public ResponseEntity<UserSummaryResponse> updateUser(
+            @PathVariable Long id,
+            @RequestBody(required = false) UpdateUserRequest request,
+            @RequestHeader(
+                    value = "Authorization",
+                    required = false
+            ) String authorization) {
+
+        // Kiem tra token dang nhap
+        Optional<User> currentUser =
+                tokens.authenticate(authorization);
+
+        // Chua dang nhap hoac token khong hop le
+        if (currentUser.isEmpty()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        // Chi ADMIN moi duoc cap nhat nguoi dung
+        if (!"ADMIN".equals(currentUser.get().getRole())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        try {
+            // Goi Service de cap nhat thong tin
+            Optional<UserSummaryResponse> updatedUser =
+                    userService.updateUser(id, request);
+
+            // Khong tim thay nguoi dung
+            if (updatedUser.isEmpty()) {
+                return ResponseEntity.status(404).build();
+            }
+
+            // Cap nhat thanh cong
+            return ResponseEntity.ok(updatedUser.get());
+
+        } catch (IllegalArgumentException ex) {
+
+            // Du lieu cap nhat khong hop le
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
