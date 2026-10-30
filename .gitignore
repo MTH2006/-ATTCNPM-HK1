@@ -33,3 +33,7 @@ frontend/dist/
 Thumbs.db
 [Dd]esktop.ini
 .DS_Store
+
+
+# Visual Studio temporary files
+**/.vs/

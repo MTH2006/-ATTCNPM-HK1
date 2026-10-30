@@ -29,10 +29,24 @@ public class User {
     @Column(nullable = false, length = 20)
     private String role = "USER";
 
+    // FR-82: Trang thai hoat dong cua tai khoan
+    @Column(name = "is_active", nullable = false)
+    private boolean active = true;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public User() {}
+
+    // FR-82: Kiem tra trang thai tai khoan
+    public boolean isActive() {
+        return active;
+    }
+
+    // FR-82: Khoa hoac mo khoa tai khoan
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 
     public User(String userUuid, String name, String email, String passwordHash, String phone, String role) {
         this.userUuid = userUuid;
