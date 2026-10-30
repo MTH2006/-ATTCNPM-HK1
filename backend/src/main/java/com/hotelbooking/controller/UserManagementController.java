@@ -7,6 +7,7 @@ import com.hotelbooking.security.AuthTokenService;
 import com.hotelbooking.service.UserManagementService;
 import com.hotelbooking.dto.UpdateUserRequest;
 import com.hotelbooking.dto.UpdateUserRoleRequest;
+import com.hotelbooking.security.AccessControlService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -31,16 +32,17 @@ import java.util.Optional;
 public class UserManagementController {
 
     private final UserManagementService userService;
-    private final AuthTokenService tokens;
+    private final AccessControlService accessControl;
 
     public UserManagementController(
             UserManagementService userService,
-            AuthTokenService tokens) {
+            AccessControlService accessControl) {
 
         this.userService = userService;
-        this.tokens = tokens;
+        this.accessControl = accessControl;
     }
 
+    // FR-79: ADMIN xem danh sach tai khoan
     @GetMapping
     public ResponseEntity<List<UserSummaryResponse>> getAllUsers(
             @RequestHeader(
@@ -50,7 +52,7 @@ public class UserManagementController {
 
         // Kiem tra token dang nhap.
         Optional<User> currentUser =
-                tokens.authenticate(authorization);
+                accessControl.authenticate(authorization);
 
         // Chua dang nhap, token sai hoac het han.
         if (currentUser.isEmpty()) {
@@ -58,7 +60,7 @@ public class UserManagementController {
         }
 
         // Chi ADMIN duoc xem danh sach nguoi dung.
-        if (!"ADMIN".equals(currentUser.get().getRole())) {
+        if (!accessControl.isAdmin(currentUser.get())) {
             return ResponseEntity.status(403).build();
         }
 
@@ -79,7 +81,7 @@ public class UserManagementController {
 
         // Kiem tra token dang nhap
         Optional<User> currentUser =
-                tokens.authenticate(authorization);
+                accessControl.authenticate(authorization);
 
         // Chua dang nhap hoac token khong hop le
         if (currentUser.isEmpty()) {
@@ -87,7 +89,7 @@ public class UserManagementController {
         }
 
         // Chi ADMIN moi duoc tim kiem nguoi dung
-        if (!"ADMIN".equals(currentUser.get().getRole())) {
+        if (!accessControl.isAdmin(currentUser.get())) {
             return ResponseEntity.status(403).build();
         }
 
@@ -97,7 +99,7 @@ public class UserManagementController {
 
         return ResponseEntity.ok(users);
     }
-    
+
     // FR-81: ADMIN cap nhat thong tin nguoi dung
     @PutMapping("/{id}")
     public ResponseEntity<UserSummaryResponse> updateUser(
@@ -110,7 +112,7 @@ public class UserManagementController {
 
         // Kiem tra token dang nhap
         Optional<User> currentUser =
-                tokens.authenticate(authorization);
+                accessControl.authenticate(authorization);
 
         // Chua dang nhap hoac token khong hop le
         if (currentUser.isEmpty()) {
@@ -118,7 +120,7 @@ public class UserManagementController {
         }
 
         // Chi ADMIN moi duoc cap nhat nguoi dung
-        if (!"ADMIN".equals(currentUser.get().getRole())) {
+        if (!accessControl.isAdmin(currentUser.get())) {
             return ResponseEntity.status(403).build();
         }
 
@@ -141,7 +143,7 @@ public class UserManagementController {
             return ResponseEntity.badRequest().build();
         }
     }
-    
+
     // FR-82: ADMIN khoa hoac mo khoa tai khoan
     @PutMapping("/{id}/status")
     public ResponseEntity<UserSummaryResponse> changeUserStatus(
@@ -154,7 +156,7 @@ public class UserManagementController {
 
         // Kiem tra token dang nhap
         Optional<User> currentUser =
-                tokens.authenticate(authorization);
+                accessControl.authenticate(authorization);
 
         // Chua dang nhap hoac token khong hop le
         if (currentUser.isEmpty()) {
@@ -162,7 +164,7 @@ public class UserManagementController {
         }
 
         // Chi ADMIN moi co quyen khoa/mo khoa
-        if (!"ADMIN".equals(currentUser.get().getRole())) {
+        if (!accessControl.isAdmin(currentUser.get())) {
             return ResponseEntity.status(403).build();
         }
 
@@ -189,7 +191,7 @@ public class UserManagementController {
             return ResponseEntity.badRequest().build();
         }
     }
-    
+
     // FR-83: ADMIN phan quyen tai khoan nguoi dung
     @PutMapping("/{id}/role")
     public ResponseEntity<UserSummaryResponse> updateUserRole(
@@ -202,7 +204,7 @@ public class UserManagementController {
 
         // Kiem tra token dang nhap
         Optional<User> currentUser =
-                tokens.authenticate(authorization);
+                accessControl.authenticate(authorization);
 
         // Chua dang nhap hoac token khong hop le
         if (currentUser.isEmpty()) {
@@ -210,7 +212,7 @@ public class UserManagementController {
         }
 
         // Chi ADMIN moi duoc phan quyen
-        if (!"ADMIN".equals(currentUser.get().getRole())) {
+        if (!accessControl.isAdmin(currentUser.get())) {
             return ResponseEntity.status(403).build();
         }
 
