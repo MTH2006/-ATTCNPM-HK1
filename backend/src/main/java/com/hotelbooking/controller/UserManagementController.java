@@ -6,7 +6,7 @@ import com.hotelbooking.model.User;
 import com.hotelbooking.security.AuthTokenService;
 import com.hotelbooking.service.UserManagementService;
 import com.hotelbooking.dto.UpdateUserRequest;
-
+import com.hotelbooking.dto.UpdateUserRoleRequest;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -186,6 +186,54 @@ public class UserManagementController {
         } catch (IllegalArgumentException ex) {
 
             // Ngan ADMIN tu khoa tai khoan
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    // FR-83: ADMIN phan quyen tai khoan nguoi dung
+    @PutMapping("/{id}/role")
+    public ResponseEntity<UserSummaryResponse> updateUserRole(
+            @PathVariable Long id,
+            @RequestBody(required = false) UpdateUserRoleRequest request,
+            @RequestHeader(
+                    value = "Authorization",
+                    required = false
+            ) String authorization) {
+
+        // Kiem tra token dang nhap
+        Optional<User> currentUser =
+                tokens.authenticate(authorization);
+
+        // Chua dang nhap hoac token khong hop le
+        if (currentUser.isEmpty()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        // Chi ADMIN moi duoc phan quyen
+        if (!"ADMIN".equals(currentUser.get().getRole())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        try {
+            // Goi Service de thay doi vai tro nguoi dung
+            Optional<UserSummaryResponse> result =
+                    userService.updateUserRole(
+                            id,
+                            request,
+                            currentUser.get().getId()
+                    );
+
+            // Khong tim thay tai khoan
+            if (result.isEmpty()) {
+                return ResponseEntity.status(404).build();
+            }
+
+            // Phan quyen thanh cong
+            return ResponseEntity.ok(result.get());
+
+        } catch (IllegalArgumentException ex) {
+
+            // Vai tro khong hop le hoac ADMIN tu doi quyen
             return ResponseEntity.badRequest().build();
         }
     }
