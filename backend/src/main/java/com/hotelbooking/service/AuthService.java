@@ -54,7 +54,7 @@ public class AuthService {
         }
 
         User user = found.get();
-       
+
         // FR-82: Chan tai khoan da bi khoa dang nhap
         if (!user.isActive()) {
             return denied();
@@ -127,7 +127,8 @@ public class AuthService {
             new AuthResponse.UserDto(
                 user.getUserUuid(),
                 user.getName(),
-                user.getEmail()
+                user.getEmail(),
+                user.getRole()
             );
 
         return new AuthResponse(

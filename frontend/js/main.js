@@ -88,7 +88,12 @@
       try {
         const response = await fetch(`${API_BASE_URL}/hotels/featured`, { signal: AbortSignal.timeout(800) });
         if (!response.ok) throw new Error('Network error');
-        return await response.json();
+        const result = await response.json();
+        if (result.success && result.user) {
+          result.user.token = result.token;
+          localStorage.setItem('hotel_user', JSON.stringify(result.user));
+        }
+        return result;
       } catch {
         return FEATURED_HOTELS;
       }
@@ -147,13 +152,19 @@
           signal: AbortSignal.timeout(1000)
         });
         if (!response.ok) throw new Error('Auth error');
-        return await response.json();
+        const result = await response.json();
+        if (result.success && result.user) {
+          result.user.token = result.token;
+          localStorage.setItem('hotel_user', JSON.stringify(result.user));
+        }
+        return result;
       } catch {
         const user = {
           id: 'usr_' + Date.now(),
           email: credentials.email,
           name: credentials.name || credentials.email.split('@')[0],
-          token: 'jwt_mock_' + Date.now()
+          token: 'jwt_mock_' + Date.now(),
+          role: 'USER'
         };
         try {
           localStorage.setItem('hotel_user', JSON.stringify(user));

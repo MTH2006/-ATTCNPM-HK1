@@ -108,8 +108,8 @@ export const HotelAPI = {
     } catch {
       const q = (query || '').toLowerCase().trim();
       if (!q) return FEATURED_HOTELS;
-      return FEATURED_HOTELS.filter(h => 
-        h.name.toLowerCase().includes(q) || 
+      return FEATURED_HOTELS.filter(h =>
+        h.name.toLowerCase().includes(q) ||
         h.location.toLowerCase().includes(q) ||
         h.city.toLowerCase().includes(q)
       );

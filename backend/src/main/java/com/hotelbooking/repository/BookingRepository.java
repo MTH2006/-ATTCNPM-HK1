@@ -19,6 +19,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findAllByOrderByCreatedAtDesc();
 
+    List<Booking> findByGuestEmailIgnoreCaseAndStatusAndCheckOutLessThanEqualOrderByCheckOutDesc(
+            String guestEmail, String status, LocalDate checkOut);
+
     @Query("SELECT COUNT(b) FROM Booking b WHERE " +
            "b.hotelId = :hotelId AND " +
            "b.roomType = :roomType AND " +

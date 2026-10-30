@@ -97,7 +97,7 @@ public class UserManagementController {
 
         return ResponseEntity.ok(users);
     }
-    
+
     // FR-81: ADMIN cap nhat thong tin nguoi dung
     @PutMapping("/{id}")
     public ResponseEntity<UserSummaryResponse> updateUser(
@@ -141,7 +141,7 @@ public class UserManagementController {
             return ResponseEntity.badRequest().build();
         }
     }
-    
+
     // FR-82: ADMIN khoa hoac mo khoa tai khoan
     @PutMapping("/{id}/status")
     public ResponseEntity<UserSummaryResponse> changeUserStatus(

@@ -102,4 +102,13 @@ public class BookingService {
         }
         return false;
     }
+
+    @Transactional
+    public boolean completeBooking(String bookingId) {
+        Optional<Booking> opt = bookingRepository.findByBookingId(bookingId);
+        if (opt.isEmpty()) return false;
+        Booking booking = opt.get();
+        if (!"CONFIRMED".equals(booking.getStatus()) || booking.getCheckOut().isAfter(LocalDate.now())) return false;
+        booking.setStatus("COMPLETED"); bookingRepository.save(booking); return true;
+    }
 }

@@ -110,7 +110,7 @@ public class UserManagementService {
                 UserSummaryResponse.fromUser(updatedUser)
         );
     }
-    
+
     // FR-82: Khoa hoac mo khoa tai khoan nguoi dung
     @Transactional
     public Optional<UserSummaryResponse> changeUserStatus(

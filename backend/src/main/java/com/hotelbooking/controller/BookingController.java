@@ -2,6 +2,7 @@ package com.hotelbooking.controller;
 
 import com.hotelbooking.model.Booking;
 import com.hotelbooking.service.BookingService;
+import com.hotelbooking.service.AuthSessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +17,11 @@ import java.util.Map;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final AuthSessionService sessions;
 
-    public BookingController(BookingService bookingService) {
+    public BookingController(BookingService bookingService, AuthSessionService sessions) {
         this.bookingService = bookingService;
+        this.sessions = sessions;
     }
 
     @PostMapping
@@ -66,5 +69,14 @@ public class BookingController {
             response.put("message", "Không tìm thấy mã đặt phòng để hủy.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
+    }
+
+    @PutMapping("/{bookingId}/complete")
+    public ResponseEntity<Map<String, Object>> completeBooking(@PathVariable String bookingId,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        if (!sessions.isAdmin(authorization)) return ResponseEntity.status(403).body(Map.of("success", false, "message", "Chỉ quản trị viên mới có quyền hoàn tất đơn."));
+        boolean completed = bookingService.completeBooking(bookingId);
+        return completed ? ResponseEntity.ok(Map.of("success", true, "message", "Đơn lưu trú đã hoàn tất."))
+                : ResponseEntity.badRequest().body(Map.of("success", false, "message", "Chỉ có thể hoàn tất đơn đã xác nhận sau ngày trả phòng."));
     }
 }
