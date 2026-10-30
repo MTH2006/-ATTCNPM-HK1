@@ -67,7 +67,9 @@ Mở `http://localhost:3000/hotel-management.html` và đăng nhập bằng tài
 ```sql
 UPDATE users SET role = 'ADMIN' WHERE email = 'admin@example.com';
 ```
-Đăng nhập lại sau khi được cấp quyền. API quản lý yêu cầu Bearer token của phiên đăng nhập ADMIN. Các endpoint quản trị: `GET /api/hotels`, `POST /api/hotels`, `PUT /api/hotels/{id}`, `DELETE /api/hotels/{id}`. Hạng sao chỉ được thêm hoặc thay đổi khi hồ sơ được đánh dấu đã xác minh. Khách sạn bị ẩn sẽ không xuất hiện trong danh sách công khai.
+Đăng nhập lại sau khi được cấp quyền. API quản lý yêu cầu JWT Bearer token của tài khoản ADMIN. Các endpoint quản trị: `GET /api/hotels`, `POST /api/hotels`, `PUT /api/hotels/{id}`, `DELETE /api/hotels/{id}`. Hạng sao chỉ được thêm hoặc thay đổi khi hồ sơ được đánh dấu đã xác minh. Khách sạn bị ẩn sẽ không xuất hiện trong danh sách công khai.
+
+Quản trị tài khoản được hỗ trợ qua API `GET /api/admin/users`, `GET /api/admin/users/search?keyword=...`, `PUT /api/admin/users/{id}` và `PUT /api/admin/users/{id}/status?active=true|false`. Các API quản trị yêu cầu JWT Bearer token của tài khoản ADMIN. Trường `is_active` được tạo bởi `database/migrations/schema_updates.sql` hoặc tự cập nhật qua JPA.
 
 ### 4. Đánh giá khách sạn (FR-45–FR-50)
 Mở `http://localhost:3000/reviews.html` để xem đánh giá đã được duyệt, viết đánh giá cho đơn lưu trú của tài khoản sau khi đơn được đánh dấu `COMPLETED`, hoặc sửa/xóa đánh giá của mình. Mỗi đơn chỉ được đánh giá một lần; nội dung mới và nội dung chỉnh sửa chờ quản trị viên duyệt. Đăng nhập ADMIN để xem hàng chờ duyệt trên trang đánh giá.

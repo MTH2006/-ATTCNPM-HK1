@@ -1,48 +1,29 @@
 package com.hotelbooking.service;
 
 import com.hotelbooking.model.User;
+import com.hotelbooking.security.AuthTokenService;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
-import java.util.UUID;
-import java.time.Instant;
-import java.time.Duration;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 
 @Service
 public class AuthSessionService {
-    private final Map<String, UserSession> sessions = new ConcurrentHashMap<>();
+    private final AuthTokenService tokens;
 
-    public String create(User user) {
-        String token = UUID.randomUUID().toString();
-        sessions.put(token, new UserSession(user.getUserUuid(), user.getRole(), Instant.now().plus(Duration.ofHours(8))));
-        return token;
-    }
+    public AuthSessionService(AuthTokenService tokens) { this.tokens = tokens; }
 
     public boolean isAdmin(String authorization) {
-        UserSession session = find(authorization);
-        return session != null && "ADMIN".equalsIgnoreCase(session.role());
+        return currentUser(authorization).map(user -> "ADMIN".equalsIgnoreCase(user.getRole())).orElse(false);
     }
 
     public boolean isAuthenticated(String authorization) {
-        return find(authorization) != null;
+        return currentUser(authorization).isPresent();
     }
 
     public String userId(String authorization) {
-        UserSession session = find(authorization);
-        return session == null ? null : session.userId();
+        return currentUser(authorization).map(User::getUserUuid).orElse(null);
     }
 
-    private UserSession find(String authorization) {
-        if (authorization == null || !authorization.startsWith("Bearer ")) return null;
-        String token = authorization.substring(7).trim();
-        UserSession session = sessions.get(token);
-        if (session != null && session.expiresAt().isBefore(Instant.now())) {
-            sessions.remove(token);
-            return null;
-        }
-        return session;
+    private Optional<User> currentUser(String authorization) {
+        return tokens.authenticate(authorization);
     }
-
-    private record UserSession(String userId, String role, Instant expiresAt) {}
 }
