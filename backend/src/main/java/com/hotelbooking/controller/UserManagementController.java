@@ -141,4 +141,52 @@ public class UserManagementController {
             return ResponseEntity.badRequest().build();
         }
     }
+    
+    // FR-82: ADMIN khoa hoac mo khoa tai khoan
+    @PutMapping("/{id}/status")
+    public ResponseEntity<UserSummaryResponse> changeUserStatus(
+            @PathVariable Long id,
+            @RequestParam boolean active,
+            @RequestHeader(
+                    value = "Authorization",
+                    required = false
+            ) String authorization) {
+
+        // Kiem tra token dang nhap
+        Optional<User> currentUser =
+                tokens.authenticate(authorization);
+
+        // Chua dang nhap hoac token khong hop le
+        if (currentUser.isEmpty()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        // Chi ADMIN moi co quyen khoa/mo khoa
+        if (!"ADMIN".equals(currentUser.get().getRole())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        try {
+            // Goi Service thay doi trang thai tai khoan
+            Optional<UserSummaryResponse> result =
+                    userService.changeUserStatus(
+                            id,
+                            active,
+                            currentUser.get().getId()
+                    );
+
+            // Khong tim thay tai khoan
+            if (result.isEmpty()) {
+                return ResponseEntity.status(404).build();
+            }
+
+            // Cap nhat thanh cong
+            return ResponseEntity.ok(result.get());
+
+        } catch (IllegalArgumentException ex) {
+
+            // Ngan ADMIN tu khoa tai khoan
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }

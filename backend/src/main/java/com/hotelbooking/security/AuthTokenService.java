@@ -160,7 +160,10 @@ public class AuthTokenService {
                 return Optional.empty();
             }
 
-            return users.findByUserUuid(uuid);
+
+            // FR-82: Chan token cua tai khoan da bi khoa
+            return users.findByUserUuid(uuid)
+                    .filter(User::isActive);
 
         } catch (Exception ex) {
             return Optional.empty();

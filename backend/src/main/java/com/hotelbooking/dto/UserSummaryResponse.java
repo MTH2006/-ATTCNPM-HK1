@@ -11,7 +11,8 @@ public record UserSummaryResponse(
     String email,
     String phone,
     String role,
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+    boolean active
 ) {
     public static UserSummaryResponse fromUser(User user) {
         return new UserSummaryResponse(
@@ -21,7 +22,8 @@ public record UserSummaryResponse(
             user.getEmail(),
             user.getPhone(),
             user.getRole(),
-            user.getCreatedAt()
+            user.getCreatedAt(),
+            user.isActive()
         );
     }
 }

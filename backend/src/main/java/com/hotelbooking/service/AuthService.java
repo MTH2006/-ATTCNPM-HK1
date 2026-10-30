@@ -54,6 +54,11 @@ public class AuthService {
         }
 
         User user = found.get();
+       
+        // FR-82: Chan tai khoan da bi khoa dang nhap
+        if (!user.isActive()) {
+            return denied();
+        }
 
         if (!passwords.matches(
                 request.getPassword(),

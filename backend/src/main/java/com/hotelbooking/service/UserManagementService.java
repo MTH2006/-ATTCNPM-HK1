@@ -110,4 +110,35 @@ public class UserManagementService {
                 UserSummaryResponse.fromUser(updatedUser)
         );
     }
+    
+    // FR-82: Khoa hoac mo khoa tai khoan nguoi dung
+    @Transactional
+    public Optional<UserSummaryResponse> changeUserStatus(
+            Long userId, boolean active, Long adminId) {
+
+        // Ngan ADMIN tu khoa tai khoan cua minh
+        if (!active && userId.equals(adminId)) {
+            throw new IllegalArgumentException(
+                    "ADMIN khong the tu khoa tai khoan cua minh");
+        }
+
+        // Tim tai khoan can thay doi
+        Optional<User> userOptional = userRepository.findById(userId);
+
+        if (userOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        User user = userOptional.get();
+
+        // Cap nhat trang thai tai khoan
+        user.setActive(active);
+
+        // Luu vao PostgreSQL
+        User savedUser = userRepository.save(user);
+
+        return Optional.of(
+                UserSummaryResponse.fromUser(savedUser)
+        );
+    }
 }
