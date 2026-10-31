@@ -5,7 +5,9 @@ import com.hotelbooking.model.SupportRequest;
 import com.hotelbooking.repository.SupportRequestRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Sort;
 
+import java.util.List;
 import java.time.LocalDateTime;
 import java.util.regex.Pattern;
 
@@ -83,5 +85,48 @@ public class SupportRequestService {
     // Loai bo khoang trang thua va xu ly gia tri null
     private String normalize(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    // FR-95: Lay danh sach yeu cau ho tro moi nhat
+    @Transactional(readOnly = true)
+    public List<SupportRequest> getAllSupportRequests() {
+
+        return supportRequestRepository.findAll(
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+    }
+
+    // FR-95: Nhan vien tiep nhan yeu cau ho tro
+    @Transactional
+    public SupportRequest acceptSupportRequest(Long requestId) {
+
+        // Kiem tra ma yeu cau
+        if (requestId == null || requestId <= 0) {
+            throw new IllegalArgumentException(
+                    "Ma yeu cau ho tro khong hop le.");
+        }
+
+        // FR-95: Cap nhat co dieu kien de tranh tiep nhan trung
+        int updated = supportRequestRepository
+                .acceptIfPending(requestId);
+
+        // Chi mot nhan vien co the tiep nhan thanh cong
+        if (updated == 1) {
+
+            // Lay lai yeu cau sau khi cap nhat PostgreSQL
+            return supportRequestRepository.findById(requestId)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Khong the tai lai yeu cau da tiep nhan."));
+        }
+
+        // Kiem tra yeu cau co ton tai hay khong
+        if (supportRequestRepository.findById(requestId).isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Khong tim thay yeu cau ho tro.");
+        }
+
+        // Yeu cau khong con trang thai PENDING
+        throw new IllegalStateException(
+                "Yeu cau khong o trang thai cho xu ly.");
     }
 }

@@ -11,6 +11,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import java.util.Optional;
+
 class SupportRequestServiceTest {
 
     private SupportRequestRepository repository;
@@ -118,5 +120,109 @@ class SupportRequestServiceTest {
         request.setMessage("Toi can ho tro ve don dat phong.");
 
         return request;
+    }
+    
+    
+    // FR-95: Tiep nhan yeu cau dang cho xu ly
+    @Test
+    void shouldAcceptPendingSupportRequest() {
+
+        SupportRequest request = createValidRequest();
+        request.setId(1L);
+        request.setStatus("IN_PROGRESS");
+
+        // Gia lap cap nhat thanh cong trong PostgreSQL
+        when(repository.acceptIfPending(1L))
+                .thenReturn(1);
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(request));
+
+        SupportRequest result =
+                service.acceptSupportRequest(1L);
+
+        assertEquals("IN_PROGRESS", result.getStatus());
+
+        verify(repository, times(1))
+                .acceptIfPending(1L);
+
+        verify(repository, times(1))
+                .findById(1L);
+
+        verify(repository, never())
+                .save(any(SupportRequest.class));
+    }
+
+    // FR-95: Tu choi tiep nhan yeu cau da duoc xu ly
+    @Test
+    void shouldRejectAlreadyAcceptedRequest() {
+
+        SupportRequest request = createValidRequest();
+        request.setId(1L);
+        request.setStatus("IN_PROGRESS");
+
+        when(repository.acceptIfPending(1L))
+                .thenReturn(0);
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(request));
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> service.acceptSupportRequest(1L)
+        );
+
+        verify(repository, times(1))
+                .acceptIfPending(1L);
+
+        verify(repository, never())
+                .save(any(SupportRequest.class));
+    }
+
+    // FR-95: Tu choi ma yeu cau khong ton tai
+    @Test
+    void shouldRejectNonExistingRequest() {
+
+        when(repository.acceptIfPending(999L))
+                .thenReturn(0);
+
+        when(repository.findById(999L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.acceptSupportRequest(999L)
+        );
+
+        verify(repository, times(1))
+                .acceptIfPending(999L);
+
+        verify(repository, never())
+                .save(any(SupportRequest.class));
+    }
+
+    // FR-95: Tu choi ma yeu cau khong hop le
+    @Test
+    void shouldRejectInvalidRequestId() {
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.acceptSupportRequest(0L)
+        );
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.acceptSupportRequest(null)
+        );
+
+        // Khong truy cap Repository khi ma khong hop le
+        verify(repository, never())
+                .acceptIfPending(anyLong());
+
+        verify(repository, never())
+                .findById(anyLong());
+
+        verify(repository, never())
+                .save(any(SupportRequest.class));
     }
 }
